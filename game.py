@@ -1,5 +1,3 @@
-import time
-
 import pyxel
 
 from settings import DEBUG
@@ -16,26 +14,25 @@ class Engine:
         for x in range(self.width):
             for y in range(self.height):
                 self.scenario[(x, y)] = 0
-                x_min = max(x - 1, 0)
-                y_min = max(y - 1, 0)
-                x_max = min(x + 1, self.width-1)
-                y_max = min(y + 1, self.height-1)
-                # self.neighbors[(x, y)] = tuple((x2, y2) for x2 in range(x_min, x_max) for y2 in range(y_min, y_max))
                 self.neighbors[(x, y)] = []
-                for x2 in range(x_min, x_max):
-                    for y2 in range(y_min, y_max):
-                        if x != x2 and y != y2:
-                            self.neighbors[(x, y)].append((x2, y2))
+                neighbors = [(x-1, y-1), (x-1, y), (x-1, y+1),
+                             (x, y-1), (x, y+1),
+                             (x+1, y-1), (x+1, y), (x+1, y+1)]
+                for n in neighbors:
+                    if 0 <= n[0] < self.width and 0 <= n[1] < self.height:
+                        self.neighbors[(x, y)].append(n)
         if DEBUG:
-            for (x, y) in [(1, 1), (1, 2), (2, 1), (2, 2)]:
-                self.scenario[(x, y)] = 1
+            self.add_glider(0, 0)
+
+    def add_glider(self, x, y):
+        live_cells = [(x+2, y), (x, y+1), (x+2, y+1), (x+1, y+2), (x+2, y+2)]
+        for cell in live_cells:
+            self.scenario[cell] = 1
 
     def evaluate_neighborhood(self, x, y):
         n_alive = 0
         for (x_n, y_n) in self.neighbors[(x, y)]:
             n_alive += self.scenario[(x_n, y_n)]
-        if n_alive > 0:
-            print(n_alive)
         return n_alive
 
     def generate_frame(self):
@@ -68,9 +65,6 @@ class App:
             for x in range(self.engine.width):
                 if self.engine.scenario[(x, y)] == 1:
                     pyxel.pset(x, y, 2)
-                else:
-                    pyxel.pset(x, y, 7)
-        time.sleep(1)
 
 
 if __name__ == '__main__':
